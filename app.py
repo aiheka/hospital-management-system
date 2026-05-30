@@ -9,6 +9,10 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
+# ======================
+# MODELS
+# ======================
+
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -16,10 +20,31 @@ class Patient(db.Model):
     disease = db.Column(db.String(100))
 
 
+class Doctor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    specialization = db.Column(db.String(100))
+
+
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_name = db.Column(db.String(100))
+    doctor_name = db.Column(db.String(100))
+    appointment_date = db.Column(db.String(50))
+
+
+# ======================
+# HOME
+# ======================
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
+# ======================
+# PATIENT ROUTES
+# ======================
 
 @app.route("/add_patient", methods=["GET", "POST"])
 def add_patient():
@@ -82,6 +107,77 @@ def edit_patient(id):
         patient=patient
     )
 
+
+# ======================
+# DOCTOR ROUTES
+# ======================
+
+@app.route("/add_doctor", methods=["GET", "POST"])
+def add_doctor():
+
+    if request.method == "POST":
+
+        doctor = Doctor(
+            name=request.form["name"],
+            specialization=request.form["specialization"]
+        )
+
+        db.session.add(doctor)
+        db.session.commit()
+
+        return redirect("/doctors")
+
+    return render_template("add_doctor.html")
+
+
+@app.route("/doctors")
+def doctors():
+
+    all_doctors = Doctor.query.all()
+
+    return render_template(
+        "view_doctors.html",
+        doctors=all_doctors
+    )
+
+
+# ======================
+# APPOINTMENT ROUTES
+# ======================
+
+@app.route("/add_appointment", methods=["GET", "POST"])
+def add_appointment():
+
+    if request.method == "POST":
+
+        appointment = Appointment(
+            patient_name=request.form["patient_name"],
+            doctor_name=request.form["doctor_name"],
+            appointment_date=request.form["appointment_date"]
+        )
+
+        db.session.add(appointment)
+        db.session.commit()
+
+        return redirect("/appointments")
+
+    return render_template("add_appointment.html")
+
+
+@app.route("/appointments")
+def appointments():
+
+    all_appointments = Appointment.query.all()
+
+    return render_template(
+        "view_appointments.html",
+        appointments=all_appointments
+    )
+
+
+# ======================
+# RUN APP
+# ======================
 
 if __name__ == "__main__":
 
